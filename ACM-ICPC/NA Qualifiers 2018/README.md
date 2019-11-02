@@ -1,0 +1,1 @@
+The above C++ files are solutions to problems from the [2018 ICPC North American Qualifer Contest](https://open.kattis.com/problem-sources/2018%20ICPC%20North%20American%20Qualifier%20Contest?order=subacc).

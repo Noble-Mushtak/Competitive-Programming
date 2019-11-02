@@ -1,0 +1,10 @@
+*
+!*/
+!*.*
+*~
+CodeChef/
+SPOJ/
+*.in
+*.out
+HackerRank/
+test*

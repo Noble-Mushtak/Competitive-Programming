@@ -1,0 +1,20 @@
+Area of Triangle: Heron's Formula OR 1/2 (cross product of two side vectors)
+Area of Polygon: x1y2+x2y3+ [...] +xny1 -y1x2-y2x3- [...] ynx1
+Distance from Point P to Line AB: |(P-A) x (B-A)|/|B-A|
+[Right Triangle with angle PBA: Perpendicular distance is opposite, P-A is hypotenuse]
+Point on Line <-> Distance to Line is 0
+Points C and D on Same Side of Line AB: (B-A) x (C-A) and (B-A) x (D-A) have same z-component
+Point in Convex Polygon: Point on Same Side of All Sides as Average of Verticies
+Point D is in Plane ABC: ((B-A) x (C-A)) . (D-A) = 0
+[Cross Product is Perpendicular to Plane]
+Two Lines Intersect: Coplanar and Not Parallel
+Two Line Segments AB and CD Intersect:
+Two-Dimensions -> A and B are on opposite sides of C and D and vice versa
+Point of Intersection = Answer to 
+Three-Dimensions -> A_n+(B_n-A_n)i = C_n+(D_n-C_n)j for n=x, y, z such that 0 <= i, j <= 1
+Point of Intersection = (A_x+(B_x-A_x)i, A_y+(B_y-A_y)i, A_z+(B_z-A_z)i)
+Point of Intersection of Two Lines: 0 <= i, j <= 1 does not need to hold above
+Two-Dimensional Polygon is Convex: All Consecutive Points A, B, C -> z-component of (B-A) x (C-A) is positive
+[No reflex angles <-> sin is always positive]
+Point in Non-Convex Polygon: Extend Ray from Point that does not Hit Vertex or Coincide with Edge: Ray Will Intersect Polygon Odd Number of Times <-> Point is Inside Polygon
+Point in Three Dimensional Figure: Same as Above, except Count Number of Times Faces are Hit and Must not Hit Vertex or Edge

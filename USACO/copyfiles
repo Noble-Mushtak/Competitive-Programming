@@ -1,0 +1,4 @@
+#!/bin/bash
+cp aaa.c "$1"/aaa.c
+cp aaafast.c "$1"/aaafast.c
+cp zzztest.c "$1"/zzztest.c

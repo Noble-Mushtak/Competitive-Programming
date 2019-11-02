@@ -1,0 +1,132 @@
+Chinese Remainder Theorem:
+a = x+yc
+a = w+vd
+0= (x-w)+yc+vd
+w-x = yc+vd
+c^(-1)(w-x) = y+ud
+
+uint64_t mask[64] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536870912, 1073741824, 2147483648LL, 4294967296, 8589934592, 17179869184, 34359738368, 68719476736, 137438953472, 274877906944, 549755813888, 1099511627776, 2199023255552, 4398046511104, 8796093022208, 17592186044416, 35184372088832, 70368744177664, 140737488355328, 281474976710656, 562949953421312, 1125899906842624, 2251799813685248, 4503599627370496, 9007199254740992, 18014398509481984, 36028797018963968, 72057594037927936, 144115188075855872, 288230376151711744, 576460752303423488, 1152921504606846976, 2305843009213693952, 4611686018427387904, 9223372036854775808ULL};
+
+real intPow(real rat, power exp) {
+    real answer;
+    if (!exp) return 1;
+    answer = intPow(rat, exp/2);
+    answer *= answer;
+    if (exp % 2) answer *= rat;
+    return answer;
+}
+
+inline void print(long num) {
+    long numTrailingZeroes, backwardsNum;
+    if (!num) {
+        putchar('0');
+        return;
+    }
+
+    for (backwardsNum = num, numTrailingZeroes = 0; !(backwardsNum % 10); numTrailingZeroes++) backwardsNum /= 10;
+    for (backwardsNum = 0; num != 0; num /= 10) backwardsNum = backwardsNum*10+(num % 10);
+    for (; backwardsNum != 0; backwardsNum /= 10) putchar((backwardsNum % 10)+'0');
+    while (numTrailingZeroes--) putchar('0');
+}
+
+num calcModuloInverse(num dividend, num MOD) {
+    num lastRemainder = dividend, lastInverse = 1, remainder = MOD, inverse = 0, quotient, temp;
+    while (remainder) {
+        quotient = lastRemainder/remainder;
+        temp = remainder, remainder = lastRemainder % remainder, lastRemainder = temp;
+        temp = inverse, inverse = lastInverse-quotient*inverse, lastInverse = temp;
+    }
+    if (lastInverse < 0) lastInverse += MOD;
+    return lastInverse;
+}
+
+num calcModuloExp(num base, num exp) {
+    num result = 1, cur = base;
+    while (exp) {
+        if (exp & 1) result *= cur, result %= MOD;
+        cur *= cur, cur %= MOD, exp >>= 1;
+    }
+    return result;
+}
+
+modulo calcModuloComb(num_nums spots, num_nums divisors) {
+    modulo answer = 1;
+    num_nums i;
+    spots %= MOD;
+    REPEAT(i, divisors) answer *= spots-i, answer %= MOD;
+    answer *= factorialInv[divisors], answer %= MOD;
+    return answer;
+}
+
+modulo calcModuloComb(num_nums spots, num_nums dividers) {
+    modulo result = 1;
+    num_nums i, answerPrimes[NUM_PRIMES];
+    memset(answerPrimes, 0, sizeof(answerPrimes));
+    if (dividers > (spots-dividers)) dividers = spots-dividers;
+
+    REPEAT(i, NUM_PRIMES) if (primes[i] > spots) break; else answerPrimes[i] += primesCounterSum[spots][i]-primesCounterSum[spots-dividers][i]-primesCounterSum[dividers][i];
+    REPEAT(i, NUM_PRIMES) if (primes[i] > spots) break; else result *= calcModuloExp(primes[i], answerPrimes[i]), result %= MOD;
+    return result;
+}
+
+bool pointInPolygon(point test, num_points numVerticies, point *verticies) {
+    //https://stackoverflow.com/questions/217578/point-in-polygon-aka-hit-test/2922778#2922778
+    int i, j;
+    bool in = 0;
+    for (i = 0, j = numVerticies-1; i < numVerticies; j = i++) {
+        if (((verticies[i].y > test.y) ^ (verticies[j].y > test.y)) && (test.x < ((verticies[j].x-verticies[i].x)*DIVIDE((test.y-verticies[i].y), (verticies[j].y-verticies[i].y))+verticies[i].x))) in = !in;
+    }
+    return in;
+}
+
+num gcd(num num1, num num2) {
+    num remainder = num1, lastRemainder = num2, lastLastRemainder;
+    while (remainder) {
+        lastLastRemainder = lastRemainder, lastRemainder = remainder;
+        remainder = lastLastRemainder % lastRemainder;
+    }
+    return lastRemainder;
+}
+
+num fibonacci(num_nums request) {
+    if (request < 2) return request;
+    else if (request % 2) {
+        num baseCase1 = fibonacci((request-1)/2), baseCase2 = fibonacci((request+1)/2);
+        return baseCase1*baseCase1+baseCase2*baseCase2;
+    }
+    else {
+        num baseCase1 = fibonacci((request-1)/2), baseCase2 = fibonacci((request+1)/2);
+        return (2*baseCase1+baseCase2)*baseCase2;
+    }
+}
+
+num_nums binarySearch(num *list, num_nums length, num query) {
+    num_nums beg = 0, mid, end = length-1;
+    while (beg <= end) {
+        mid = (beg+end)/2;
+        if ((!mid || query >= list[mid-1]) && query < list[mid]) return mid;
+        else if (query < list[mid]) end = mid-1;
+        else beg = mid+1;
+    }
+    return beg;
+}
+
+Types of Problems (Hal Burch, 1999):
+    Dynamic Programming
+    Greedy
+    Complete Search
+    Flood Fill
+    Shortest Path
+    Recursive Search Techniques
+    Minimum Spanning Tree
+    Knapsack
+    Computational Geometry
+    Network Flow
+    Eulerian Path
+    Two-Dimensional Convex Hull
+    BigNums
+    Heuristic Search
+    Approximate Search
+    Ad Hoc Problems
+https://programmers.stackexchange.com/questions/175063/what-types-of-programming-contest-problems-are-there
+http://compsci.ca/v3/viewtopic.php?t=10408

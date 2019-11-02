@@ -1,0 +1,4 @@
+# Competitive Programming #
+This repository contains a lot of solutions to past competitive programming problems which I have worked on. Also, the Libraries subdirectory contains some data structures and libraries I have developed while participating in programming competitions.
+
+Some of these solutions are in C++, some are in Python, and some are even in C. During programming competitions, I use whatever language feels best for solving the problem. However, I mostly use C++, so most of my libraries are in C++. However, there are some old libraries which I wrote in C, which are located in the C-Libraries subdirectory.
