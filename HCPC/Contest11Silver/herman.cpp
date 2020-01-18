@@ -1,0 +1,23 @@
+#pragma GCC optimize("Ofast")
+#pragma GCC optimize("unroll-loops")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,avx2")
+#include <bits/stdc++.h>
+
+#define REP(token, num) for (token = 0; token < num; token++)
+#define fgets fgets_unlocked
+#define INT64 "%" PRId64
+#define DOUBLE "%lf"
+
+#ifdef DEBUG
+#define PRINTF printf
+#else
+#define PRINTF(...)
+#endif
+
+int main() {
+    int64_t iRadius;
+    scanf("%" PRId64, &iRadius);
+    double radius = iRadius;
+    printf("%lf\n%lf\n", M_PI*radius*radius, 2*radius*radius);
+    return 0;
+}
