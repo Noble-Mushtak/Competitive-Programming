@@ -40,6 +40,46 @@ num calcModuloInverse(num dividend, num MOD) {
     return lastInverse;
 }
 
+static inline num multModulo(num num1, num num2, num MOD) {
+    return ( static_cast<__int128>(num1) * num2) % MOD;
+}
+
+//Use for num1, num2, MOD < 2^63, if __int128 is unavailable:
+num multModulo(num num1, num num2, num MOD) {
+    //printf("%" PRId64 " %" PRId64 " %" PRId64 "\n", num1,num2, MOD);
+    uint64_t ONE = 1;
+    // N = 2 ^ 32
+    
+    // num1 = AN+B
+    uint64_t A = num1 >> 32;
+    uint64_t B = num1 & ((ONE << 32)-1);
+    // num2 = CN+D
+    uint64_t C = num2 >> 32;
+    uint64_t D = num2 & ((ONE << 32)-1);
+    // (AN+B)(CN+D)=ACN^2 + (BC+AD)N + BD
+    // The BD term is all set: No multiplication needed.
+    uint64_t BD = (B*D) % MOD;
+    // Now, calculate BC+AD and split int up into its first 32 and last 32 bits:
+    uint64_t BC = (B*C) % MOD;
+    uint64_t AD = (A*D) % MOD;
+    uint64_t BC_PLUS_AD = (BC+AD) % MOD;
+    uint64_t BC_PLUS_AD_FIRST = BC_PLUS_AD >> 32;
+    uint64_t BC_PLUS_AD_LAST = BC_PLUS_AD & ((ONE << 32)-1);
+    // For the last 32 bits, just bitshift that by 32 bits and take the mod:
+    uint64_t BC_PLUS_AD_LAST_MOD = (BC_PLUS_AD_LAST << 32) % MOD;
+    // Thus, we are all set with BD and the last 32 bits of BC+AD:
+    uint64_t NO_MULT_NEEDED_TERM = (BD+BC_PLUS_AD_LAST_MOD) % MOD;
+    // Now, we need to multiply AC and the first 32 bits of BC+AD by 2^64 % MOD,
+    // which we do using several bit shifts and MODs:
+    uint64_t AC = (A*C) % MOD;
+    uint64_t MULT_NEEDED_TERM = (AC+BC_PLUS_AD_FIRST) % MOD;
+    for (num counter = 0; counter < 64; counter++) {
+        MULT_NEEDED_TERM <<= 1;
+        MULT_NEEDED_TERM %= MOD;
+    }
+    return (NO_MULT_NEEDED_TERM+MULT_NEEDED_TERM) % MOD;
+}
+
 num calcModuloExp(num base, num exp) {
     num result = 1, cur = base;
     while (exp) {
