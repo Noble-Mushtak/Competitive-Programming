@@ -4,17 +4,17 @@
 #include <bits/stdc++.h>
 
 #define REP(token, num) for (token = 0; token < num; ++token)
+#define fgets fgets_unlocked
+#define INT64 "%" PRId64
+#define DOUBLE "%lf"
 
-#ifdef TESTING
-#define DEBUG(...) __VA_ARGS__
+#ifdef DEBUG
+#define PRINTF printf
 #else
-#define DEBUG(...)
+#define PRINTF(...)
 #endif
 
 int main() {
-    std::ios::sync_with_stdio(false);
-    std::cin.tie(nullptr);
-    std::cout.tie(nullptr);
-
+    
     return 0;
 }
