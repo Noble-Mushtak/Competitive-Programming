@@ -1,25 +1,34 @@
-/**
- * n-dimensional range tree for C++
- * Documentation coming soon!
-*/
-
-#pragma once
+//Received Time Limit Exceeded verdict
 
 #include <cstdio>
-#include <cinttypes>
 #include <cstdlib>
 #include <cstring>
+#include <cinttypes>
+#include <algorithm>
 #include <limits>
 #include <array>
-#include <algorithm>
 #include <vector>
+
+#define REP(token, num) for (token = 0; token < num; token++)
+
+//Use -DDEBUG compiler flag if you want PRINTF(...) to print debug output, disable if you want PRINTF(...) to do nothing
+#ifdef DEBUG
+#define PRINTF printf
+#else
+#define PRINTF(...)
+#endif
 
 //Enable if you want to record the level of each node in the BST:
 //#define USE_LEVEL
 //Enable if you want to use static rather than dynamic memory to allocate new BST nodes:
-#define USE_STATIC
+//#define USE_STATIC
 
-typedef int64_t num_items;
+typedef int32_t num_items;
+
+//Use -DMEASURE_ALLOCATION compiler flag if you want time and allocation statistics to be outputted:
+#ifdef MEASURE_ALLOCATION
+num_items spaceAllocated = 0;
+#endif
 
 namespace bst {
     template <class item_key, class item_value> struct bst;
@@ -82,7 +91,7 @@ namespace bst {
     };
         
 #ifdef USE_STATIC
-    const num_items MAX_SPACE = 4000000;
+    const num_items MAX_SPACE = 4000010;
     template <class item_key, class item_value> node<item_key, item_value> space[MAX_SPACE];
     template <class item_key, class item_value> num_items numSpaceUsed = 0;
     template <class item_key, class item_value> bst<item_key, item_value> newBstNode(item_key key, item_value value) {
@@ -217,7 +226,8 @@ namespace range_tree {
 
         static constexpr int MAX_SPACE = 2000000;
         static point pointStorageSpace[MAX_SPACE];
-        
+
+        subtree() {}
         subtree(num_items numItems, point *points) {
             //Sort by the (dimension-2) coordinate:
             std::sort(points, points+numItems, compare_by_coord<item_type, dimension, dimension-2>());
@@ -246,6 +256,9 @@ namespace range_tree {
 
             //Build the 1D range tree:
             node.root->value.second = info_array(numItems);
+#ifdef MEASURE_ALLOCATION
+            spaceAllocated += numItems;
+#endif
             for (num_items i = 0; i < numItems; i++) node.root->value.second[i] = point_info<point>(points[i]);
             //These pointers will help us update the left and right properties in the point_info array:
             num_items locInInfoArrLeft = 0, locInInfoArrRight = 0;
@@ -348,4 +361,167 @@ namespace range_tree {
     };
     
     template<class item_type, size_t dimension> std::array<item_type, dimension> subtree<item_type, dimension, 2>::pointStorageSpace[subtree<item_type, dimension, 2>::MAX_SPACE];
+}
+
+typedef int32_t dimen;
+struct rect {
+    dimen minX, maxX, minY, maxY;
+};
+typedef int64_t num_rects;
+
+const dimen MIN_X = -1, MIN_Y = -1, MAX_X = 3000000, MAX_Y = 3000000;
+num_rects numRects = 0, answer = 0;
+rect rectangles[1000010];
+//Notice that these are 64-bit integers, even though the other dimensions are stored as 32-bit integers.
+//This is because we use 32-bit integers to store the dimensions while answering queries in order to save space, but we read the dimensions in as 64-bit integers so we do not overflow when reading in numbers between -10^15 and 10^15.
+int64_t minXs[1000010], minYs[1000010], maxXs[1000010], maxYs[1000010], xs[2000010], ys[2000010];
+dimen compressed[2000010];
+num_rects numCompressed;
+std::array<dimen, 3> topLeftCorners[1000010], topRightCorners[1000010], bottomLeftCorners[1000010], bottomRightCorners[1000010];
+range_tree::subtree<dimen, 3, 2> topLeftTree, topRightTree, bottomLeftTree, bottomRightTree;
+
+#ifdef MEASURE_ALLOCATION
+struct timespec programStart;
+void printDiff(struct timespec start, struct timespec end) {
+    uint64_t microseconds = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
+    if (microseconds < 2000) fprintf(stderr, "DEBUG: %lu microseconds\n", microseconds);
+    else fprintf(stderr, "DEBUG: %lu milliseconds\n", microseconds/1000); 
+}
+#endif
+
+void recordAllocation() {
+#ifdef MEASURE_ALLOCATION
+    fprintf(stderr, "DEBUG: %" PRId32 " %" PRIu64 "\n", spaceAllocated, spaceAllocated*sizeof(range_tree::point_info<std::array<dimen, 3>>));
+    
+    struct timespec curTime;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &curTime);
+    printDiff(programStart, curTime);
+#endif
+}
+
+char name[10000], inputLine[10000];
+
+int main() {
+    while (true) {
+        fgets(name, 10000, stdin);
+        if (feof(stdin)) break;
+        
+        num_rects i;
+    #ifdef MEASURE_ALLOCATION
+        clock_gettime(CLOCK_MONOTONIC_RAW, &programStart);
+    #endif
+
+        numRects = numCompressed = answer = 0;
+        //Keep looping until we find an asterisk:
+        while (true) {
+            fgets(inputLine, 10000, stdin);
+            if (inputLine[0] == '*') break;
+            //Convert all of the tokens to numbers in the appropriate arrays:
+            sscanf(inputLine, "%" PRId64 " %" PRId64 " %" PRId64 " %" PRId64, minXs+numRects, maxXs+numRects, minYs+numRects, maxYs+numRects);
+            //Store all x-coordinates and y-coordinates in one array:
+            xs[2*numRects] = minXs[numRects];
+            xs[2*numRects+1] = maxXs[numRects];
+            ys[2*numRects] = minYs[numRects];
+            ys[2*numRects+1] = maxYs[numRects];
+            //Increment number of rectangles:
+            numRects++;
+        }
+        //Sort the x and y coordinate arrays:
+        std::sort(xs, xs+(2*numRects));
+        std::sort(ys, ys+(2*numRects));
+        //Compress the x-coordinate array so that there is only one copy of each coordinate:
+        REP(i, 2*numRects) {
+            if ((i == 0) || (xs[i] != xs[i-1])) compressed[numCompressed++] = xs[i];
+        }
+        //Then, update the min/max arrays of the rectangles with compressed coordinates:
+        REP(i, numRects) {
+            minXs[i] = bst::findBegin(numCompressed, compressed, minXs[i]);
+            maxXs[i] = bst::findBegin(numCompressed, compressed, maxXs[i]);
+        }
+        numCompressed = 0;
+        //Repeat for y-coordinates:
+        REP(i, 2*numRects) {
+            if ((i == 0) || (ys[i] != ys[i-1])) compressed[numCompressed++] = ys[i];
+        }
+        REP(i, numRects) {
+            minYs[i] = bst::findBegin(numCompressed, compressed, minYs[i]);
+            maxYs[i] = bst::findBegin(numCompressed, compressed, maxYs[i]);
+        }
+
+        REP(i, numRects) {
+            //Store all of the corners.
+            //The first dimension is a unique identifier so that two rectangles that share corners can be distinguished from each other.
+            topLeftCorners[i][0] = i;
+            topLeftCorners[i][1] = minXs[i];
+            topLeftCorners[i][2] = minYs[i];
+            topRightCorners[i][0] = i;
+            topRightCorners[i][1] = maxXs[i];
+            topRightCorners[i][2] = minYs[i];
+            bottomLeftCorners[i][0] = i;
+            bottomLeftCorners[i][1] = minXs[i];
+            bottomLeftCorners[i][2] = maxYs[i];
+            bottomRightCorners[i][0] = i;
+            bottomRightCorners[i][1] = maxXs[i];
+            bottomRightCorners[i][2] = maxYs[i];
+
+            //Store the rectangle info in a separate array for later:
+            rectangles[i].minX = minXs[i];
+            rectangles[i].maxX = maxXs[i];
+            rectangles[i].minY = minYs[i];
+            rectangles[i].maxY = maxYs[i];
+        }
+        //Build the 1D range trees: (i.e. sort the arrays)
+        recordAllocation();
+        std::sort(minXs, minXs+numRects);
+        std::sort(minYs, minYs+numRects);
+        std::sort(maxXs, maxXs+numRects);
+        std::sort(maxYs, maxYs+numRects);
+        //Build the 2D range trees:
+        recordAllocation();
+        topLeftTree = range_tree::subtree<dimen, 3, 2>(numRects, topLeftCorners);
+        recordAllocation();
+        topRightTree = range_tree::subtree<dimen, 3, 2>(numRects, topRightCorners);
+        recordAllocation();
+        bottomLeftTree = range_tree::subtree<dimen, 3, 2>(numRects, bottomLeftCorners);
+        recordAllocation();
+        bottomRightTree = range_tree::subtree<dimen, 3, 2>(numRects, bottomRightCorners);
+        recordAllocation();
+
+        REP(i, numRects) {
+            if ((i % 10000) == 0) printf("%" PRId64 "\n", i);
+            
+            //At first, assume all other rectangles intersect with rectangles[i]:
+            num_rects tempAnswer = numRects-1;
+            //Use the 1D range tree to subtract out the ones which don't intersect based off the following properties which make intersection impossible:
+            //maxX <= rectangles[i].minX
+            tempAnswer -= bst::findEnd(numRects, maxXs, rectangles[i].minX);
+            PRINTF("%" PRId64 " %" PRId64 "\n", i, tempAnswer);
+            //minX >= rectangles[i].maxX
+            tempAnswer -= numRects-bst::findBegin(numRects, minXs, rectangles[i].maxX);
+            PRINTF("%" PRId64 " %" PRId64 "\n", i, tempAnswer);
+            //maxY <= rectangles[i].minY
+            tempAnswer -= bst::findEnd(numRects, maxYs, rectangles[i].minY);
+            PRINTF("%" PRId64 " %" PRId64 "\n", i, tempAnswer);
+            //minY >= rectangles[i].maxY
+            tempAnswer -= numRects-bst::findBegin(numRects, minYs, rectangles[i].maxY);
+            PRINTF("%" PRId64 " %" PRId64 "\n", i, tempAnswer);
+            //Use the 2D range tree to add back the group of rectangles which were subtracted out twice:
+            tempAnswer += topLeftTree.countPointsInRange(std::array<dimen, 3>{0, rectangles[i].maxX, rectangles[i].maxY}, std::array<dimen, 3>{0, MAX_X, MAX_Y});
+            PRINTF("%" PRId64 " %" PRId64 "\n", i, tempAnswer);
+            tempAnswer += topRightTree.countPointsInRange(std::array<dimen, 3>{0, MIN_X, rectangles[i].maxY}, std::array<dimen, 3>{0, rectangles[i].minX, MAX_Y});
+            PRINTF("%" PRId64 " %" PRId64 "\n", i, tempAnswer);
+            tempAnswer += bottomLeftTree.countPointsInRange(std::array<dimen, 3>{0, rectangles[i].maxX, MIN_Y}, std::array<dimen, 3>{0, MAX_X, rectangles[i].minY});
+            PRINTF("%" PRId64 " %" PRId64 "\n", i, tempAnswer);
+            tempAnswer += bottomRightTree.countPointsInRange(std::array<dimen, 3>{0, MIN_X, MIN_Y}, std::array<dimen, 3>{0, rectangles[i].minX, rectangles[i].minY});
+            PRINTF("%" PRId64 " %" PRId64 "\n", i, tempAnswer);
+
+            //Update answer:
+            answer += tempAnswer;
+        }
+        if (answer & 1) puts("Odd number of pairs"), exit(1);
+        printf("%s", name);
+        printf("%" PRId64 "\n", answer/2);
+    }
+    
+    exit(0);
 }

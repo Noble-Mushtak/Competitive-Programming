@@ -6,6 +6,8 @@
 #include <limits>
 #include <array>
 #include <vector>
+#include <iostream>
+#include <sstream>
 
 #define REPEAT(token, num) for (token = 0; token < num; token++)
 
@@ -22,31 +24,41 @@ struct rect {
 };
 typedef int64_t num_rects;
 
-char token[100];
+char curLine[1000], name[100];
 num_rects numRects = 0, answer = 0;
 rect rectangles[1000010];
 
 int main() {
-    while (true) {
-        scanf("%s", token);
-        if (token[0] == '*') break;
-        sscanf(token, "%" PRId64, &(rectangles[numRects].minX));
-        scanf("%" PRId64 " %" PRId64 " %" PRId64, &(rectangles[numRects].maxX), &(rectangles[numRects].minY), &(rectangles[numRects].maxY));
-        numRects++;
-    }
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+    std::cout.tie(nullptr);
     
-    num_rects i, j;
-    REPEAT(i, numRects) {
-        num_rects tempAnswer = i;
-        REPEAT(j, i) {
-            if ((rectangles[j].maxX <= rectangles[i].minX) ||
-                (rectangles[j].minX >= rectangles[i].maxX) ||
-                (rectangles[j].maxY <= rectangles[i].minY) ||
-                (rectangles[j].minY >= rectangles[i].maxY)) tempAnswer--;
+    while (true) {
+        std::cin.getline(name, 100);
+        if (std::cin.eof()) break;
+        
+        while (true) {
+            std::cin.getline(curLine, 1000);
+            if (curLine[0] == '*') break;
+            
+            std::stringstream curLineStream(curLine);
+            curLineStream >> rectangles[numRects].minX >> rectangles[numRects].maxX >> rectangles[numRects].minY >> rectangles[numRects].maxY;
+            numRects++;
         }
-        answer += tempAnswer;
+
+        num_rects i, j;
+        REPEAT(i, numRects) {
+            num_rects tempAnswer = i;
+            REPEAT(j, i) {
+                if ((rectangles[j].maxX <= rectangles[i].minX) ||
+                    (rectangles[j].minX >= rectangles[i].maxX) ||
+                    (rectangles[j].maxY <= rectangles[i].minY) ||
+                    (rectangles[j].minY >= rectangles[i].maxY)) --tempAnswer;
+            }
+            answer += tempAnswer;
+        }
+        std::cout << name << "\n" << answer << "\n";
     }
-    printf("%" PRId64 "\n", answer);
     
     exit(0);
 }

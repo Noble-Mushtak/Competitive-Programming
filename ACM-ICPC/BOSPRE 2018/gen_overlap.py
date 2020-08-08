@@ -1,6 +1,9 @@
+import sys
 import random
+
 random.seed(0)
-num = 10**6
+print("--- SAMPLE 1 ---")
+num = 10**int(sys.argv[1])
 min = -10**15
 max = 10**15
 for i in range(num):
