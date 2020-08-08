@@ -69,20 +69,14 @@ namespace wavelet_tree {
         }
 
         //Count number of elements in arr[leftIndex..rightIndex] in the interval [queryMin, queryMax]
-        num_items withinInterval(num_items leftIndex, num_items rightIndex, num queryMin, num queryMax, bool d = false) {
+        num_items withinInterval(num_items leftIndex, num_items rightIndex, num queryMin, num queryMax) {
             //If this range of elements is empty or there is no overlap, return 0:
             if ((leftIndex >= rightIndex) || (queryMax < queryMin) || (queryMax < minVal) || (maxVal < queryMin)) return 0;
             //If there is only total overlap, return all elements:
             if ((queryMin <= minVal) && (maxVal <= queryMax)) return rightIndex-leftIndex;
 
-            if ((leftChild != nullptr) && (leftChild->itemsInLeftChild.size() > 0) && (itemsInLeftChild.back()+1 != leftChild->itemsInLeftChild.size())) std::cout << "??? " << itemsInLeftChild.back() << " " << leftChild->itemsInLeftChild.size() << "\n", std::cout.flush();
-            
-            if (rightIndex >= itemsInLeftChild.size()) std::cerr << "OVERFLOW: " << rightIndex << " " << itemsInLeftChild.size() << "\n", std::cerr.flush();
-
             num_items leftIndexOfLeftChild = itemsInLeftChild[leftIndex];
             num_items rightIndexOfLeftChild = itemsInLeftChild[rightIndex];
-            
-            if (d) std::cout << leftIndex << " " << rightIndex << " | " << leftIndexOfLeftChild << " " << rightIndexOfLeftChild << " | " << itemsInLeftChild.back() << " " << itemsInLeftChild.size() << "\n", std::cout.flush();
             
             return leftChild->withinInterval(
                 leftIndexOfLeftChild, rightIndexOfLeftChild, queryMin, queryMax
