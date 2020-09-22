@@ -1,6 +1,6 @@
 import sys
 
-lines = ((token for token in line.split()) for line in sys.stdin.read().split("\n"))
+tokens = (token for token in sys.stdin.read().split())
 
 def word_to_int(word):
     if word == "rock": return 0
@@ -11,22 +11,20 @@ def word_to_int(word):
 completed_test_case_before = False
 
 while True:
-    first_line = next(lines)
-    num_players = int(next(first_line))
+    num_players = int(next(tokens))
     if num_players == 0:
         break
-    num_games_per_pair = int(next(first_line))
+    num_games_per_pair = int(next(tokens))
     
     wins = [0]*num_players
     losses = [0]*num_players
     
     num_games = num_games_per_pair*num_players*(num_players-1)//2
     for i in range(num_games):
-        game_line = next(lines)
-        first_player_index = int(next(game_line))-1
-        first_player_choice = word_to_int(next(game_line))
-        second_player_index = int(next(game_line))-1
-        second_player_choice = word_to_int(next(game_line))
+        first_player_index = int(next(tokens))-1
+        first_player_choice = word_to_int(next(tokens))
+        second_player_index = int(next(tokens))-1
+        second_player_choice = word_to_int(next(tokens))
         
         choice_diffs = second_player_choice-first_player_choice
         if choice_diffs < 0:
