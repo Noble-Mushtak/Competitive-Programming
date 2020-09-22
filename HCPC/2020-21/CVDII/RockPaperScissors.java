@@ -4,15 +4,18 @@ import java.util.*;
 public class RockPaperScissors {
     private static final String[] choices = {"rock", "paper", "scissors"};
     
-    public static void main(String[] args) {
-        Scanner in = new Scanner(System.in);
+    public static void main(String[] args) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        
         boolean completedTestCaseBefore = false;
         
         while (true) {
-            int numPlayers = in.nextInt();
+            StringTokenizer tokensFromFirstLine = new StringTokenizer(reader.readLine());
+            
+            int numPlayers = Integer.parseInt(tokensFromFirstLine.nextToken());
             //If the number of players is 0, then we've reached the end of the file, so exit
             if (numPlayers == 0) break;
-            int numGamesPerPair = in.nextInt();
+            int numGamesPerPair = Integer.parseInt(tokensFromFirstLine.nextToken());
             
             int[] wins = new int[numPlayers];
             int[] losses = new int[numPlayers];
@@ -20,13 +23,15 @@ public class RockPaperScissors {
             int numGames = numGamesPerPair*numPlayers*(numPlayers-1)/2;
             //Repeat the following code numGames times:
             while (numGames-- > 0) {
+                StringTokenizer tokensFromGameLine = new StringTokenizer(reader.readLine());
+                
                 //Subtract by 1 to go from 1-based indexing -> 0-based indexing
-                int firstPlayerIndex = in.nextInt()-1;
+                int firstPlayerIndex = Integer.parseInt(tokensFromGameLine.nextToken())-1;
                 //By finding the index of the string in an array, we have effectively converted the strings "rock"/"paper"/"scissors" into the numbers 0/1/2, respectively
                 //This is good, because numbers are easier to work with than strings
-                int firstPlayerChoice = Arrays.asList(choices).indexOf(in.next());
-                int secondPlayerIndex = in.nextInt()-1;
-                int secondPlayerChoice = Arrays.asList(choices).indexOf(in.next());
+                int firstPlayerChoice = Arrays.asList(choices).indexOf(tokensFromGameLine.nextToken());
+                int secondPlayerIndex = Integer.parseInt(tokensFromGameLine.nextToken())-1;
+                int secondPlayerChoice = Arrays.asList(choices).indexOf(tokensFromGameLine.nextToken());
                 
                 //If either of the choice ints are -1, then the strings we read in was not "rock"/"paper"/"scissors"
                 //Hopefully, it will never come to this.
